@@ -1,7 +1,8 @@
 version: '3.8'
 
 services:
-  merkadu_api:
+  # Alterado para hífen para bater com os teus comandos de terminal
+  merkadu-api:
     image: node:18-alpine
     container_name: merkadu-api
     restart: always
@@ -10,10 +11,10 @@ services:
       - ./merkadu-server:/app
     ports:
       - "3000:3000"
-    # Entramos na pasta server onde está o package.json
-    command: sh -c "cd apps/server && npm install && npm start"
+    # Adicionado 'ls' para confirmar a pasta no log
+    command: sh -c "ls apps/server && cd apps/server && npm install && npm start"
 
-  merkadu_web:
+  merkadu-web:
     image: node:18-alpine
     container_name: merkadu-web
     restart: always
@@ -22,5 +23,4 @@ services:
       - ./merkadu-server:/app
     ports:
       - "80:3000"
-    # Entramos na pasta storefront para o Next.js
-    command: sh -c "cd apps/storefront && npm install && npm run build && npm start"
+    command: sh -c "ls apps/storefront && cd apps/storefront && npm install && npm run build && npm start"
