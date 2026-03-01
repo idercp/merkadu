@@ -1,20 +1,34 @@
+version: '3.8'
+
 services:
   # O Motor da Loja (Vendure)
   vendure_worker:
-    # ... as suas variáveis de ambiente ...
-    working_dir: /app/server
+    image: node:18-alpine
+    container_name: merkadu-api
+    restart: always
+    working_dir: /app/apps/server
     volumes:
-      - ./merkadu-server:/app # Mapeia a raiz para termos acesso a apps/server
-    command: sh -c "npm install && npm start"
+      - ./merkadu-server:/app
+    environment:
+      - DB_HOST=${RDS_HOSTNAME}
+      - DB_PORT=5432
+      - DB_NAME=merkadu
+      - DB_USER=postgres
+      - DB_PASSWORD=${RDS_PASSWORD}
     ports:
       - "3000:3000"
+    command: sh -c "npm install && npm start"
 
   # O Site para os clientes (Next.js)
   merkadu_storefront:
-    # ... as suas variáveis de ambiente ...
-    working_dir: /app/storefront
+    image: node:18-alpine
+    container_name: merkadu-web
+    restart: always
+    working_dir: /app/apps/storefront
     volumes:
-      - ./merkadu-server/apps/storefront:/app/storefront # Mapeia diretamente a pasta storefront
+      - ./merkadu-server:/app
     ports:
-      - "80:3000" # Expondo a porta 80 para o browser
+      - "80:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://${EC2_PUBLIC_IP}:3000/shop-api
     command: sh -c "npm install && npm run build && npm start"
