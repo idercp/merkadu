@@ -1,17 +1,16 @@
 version: '3.8'
 
 services:
-  # Nome do serviço uniformizado com hífen para evitar erros no terminal
   merkadu-api:
     image: node:18-alpine
     container_name: merkadu-api
     restart: always
     working_dir: /app
     volumes:
-      - ./merkadu-server:/app
+      # Caminho absoluto para a API encontrar o código
+      - /home/ec2-user/merkadu/merkadu-server:/app
     ports:
       - "3000:3000"
-    # Comando atualizado: lista a pasta, entra nela e inicia a instalação
     command: sh -c "ls -d apps/server && cd apps/server && npm install && npm start"
 
   merkadu-web:
@@ -20,8 +19,8 @@ services:
     restart: always
     working_dir: /app
     volumes:
-      - ./merkadu-server:/app
+      # O mesmo caminho absoluto para o Web também encontrar o código
+      - /home/ec2-user/merkadu/merkadu-server:/app
     ports:
       - "80:3000"
-    # Comando para o Next.js (storefront)
     command: sh -c "ls -d apps/storefront && cd apps/storefront && npm install && npm run build && npm start"
