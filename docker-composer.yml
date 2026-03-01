@@ -1,8 +1,8 @@
 version: '3.8'
 
 services:
-  # O Motor da Loja (Vendure)
-  vendure_worker:
+  # Back-end (Vendure)
+  merkadu_api:
     image: node:18-alpine
     container_name: merkadu-api
     restart: always
@@ -19,8 +19,8 @@ services:
       - "3000:3000"
     command: sh -c "npm install && npm start"
 
-  # O Site para os clientes (Next.js)
-  merkadu_storefront:
+  # Front-end (Next.js)
+  merkadu_web:
     image: node:18-alpine
     container_name: merkadu-web
     restart: always
@@ -28,7 +28,7 @@ services:
     volumes:
       - ./merkadu-server:/app
     ports:
-      - "80:3000"
+      - "80:3000" # Expondo na porta 80 para acesso direto pelo IP
     environment:
       - NEXT_PUBLIC_API_URL=http://${EC2_PUBLIC_IP}:3000/shop-api
     command: sh -c "npm install && npm run build && npm start"
