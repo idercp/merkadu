@@ -5,7 +5,6 @@ services:
     image: node:18-alpine
     container_name: merkadu-api
     restart: always
-    # Mudamos o working_dir para a raiz onde o volume mapeia
     working_dir: /app
     volumes:
       - ./merkadu-server:/app
@@ -17,7 +16,7 @@ services:
       - DB_PASSWORD=${RDS_PASSWORD}
     ports:
       - "3000:3000"
-    # Comando alterado para entrar na pasta certa antes de iniciar
+    # O comando abaixo entra na pasta e instala TUDO do zero
     command: sh -c "cd apps/server && npm install && npm start"
 
   merkadu_web:
