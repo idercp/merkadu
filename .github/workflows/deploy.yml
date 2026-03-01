@@ -11,7 +11,17 @@ jobs:
       - name: Checkout do Código
         uses: actions/checkout@v3
 
-      - name: Deploy via SSH para EC2
+      - name: Copiar ficheiros para EC2 via SCP
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          # Aqui enviamos a pasta do código e o docker-compose
+          source: "merkadu-server,docker-compose.yml"
+          target: "~/merkadu"
+
+      - name: Executar Docker na EC2
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
@@ -19,6 +29,6 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             cd ~/merkadu
-            git pull origin main
+            # Garante que o Docker usa a nova configuração
             docker-compose down
             docker-compose up -d --build
