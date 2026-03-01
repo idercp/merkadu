@@ -5,9 +5,10 @@ services:
     image: node:18-alpine
     container_name: merkadu-api
     restart: always
+    # ESTA É A LINHA QUE FALTA:
+    env_file: .env
     working_dir: /app
     volumes:
-      # Caminho absoluto para a API encontrar o código
       - /home/ec2-user/merkadu/merkadu-server:/app
     ports:
       - "3000:3000"
@@ -17,10 +18,11 @@ services:
     image: node:18-alpine
     container_name: merkadu-web
     restart: always
+    # Também recomendável para o frontend
+    env_file: .env
     working_dir: /app
     volumes:
-      # O mesmo caminho absoluto para o Web também encontrar o código
       - /home/ec2-user/merkadu/merkadu-server:/app
     ports:
       - "80:3000"
-    command: sh -c "ls -d apps/storefront && cd apps/storefront && npm install && npm run build && npm start"
+    command: sh -c "cd apps/storefront && npm install && npm run build && npm start"
