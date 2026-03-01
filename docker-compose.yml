@@ -11,7 +11,7 @@ services:
       - /home/ec2-user/merkadu/merkadu-server:/app
     ports:
       - "3000:3000"
-    command: sh -c "ls -d apps/server && cd apps/server && npm install && npm start"
+    command: sh -c "cd apps/server && npm install && npm run build && npm start"
 
   merkadu-web:
     image: node:18-alpine
