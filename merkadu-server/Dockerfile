@@ -11,7 +11,8 @@ RUN apk add --no-cache python3 make g++ gcc avahi-dev
 COPY package*.json ./
 # Otimização para poupar memória no install
 # CONFIGURAÇÃO DE MEMÓRIA PARA O NPM (Resolve o erro 228)
-RUN npm config set maxsockets 1 && \
+RUN npm uninstall mdns2 && \
+    npm config set maxsockets 1 && \
     npm config set progress false && \
     npm install --network-concurrency 1 && \
     npm cache clean --force
