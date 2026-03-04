@@ -1,12 +1,18 @@
 # Estágio 1: Build
 FROM node:20-alpine AS builder
 
+# VITAL: Recebe o argumento de memória do docker-compose
+ARG NODE_OPTIONS
+
 WORKDIR /usr/src/app
 
 COPY package*.json ./
-RUN npm install
+# Otimização para poupar memória no install
+RUN npm install --network-timeout 100000
 
 COPY . .
+
+# O build agora usará o Swap de 2GB graças ao NODE_OPTIONS
 RUN npm run build
 
 # Estágio 2: Run (Imagem leve para produção)
@@ -14,10 +20,14 @@ FROM node:20-alpine
 
 WORKDIR /usr/src/app
 
+# Copia os ficheiros necessários para a execução
 COPY --from=builder /usr/src/app/dist ./dist
 COPY --from=builder /usr/src/app/node_modules ./node_modules
 COPY --from=builder /usr/src/app/package.json ./package.json
-COPY --from=builder /usr/src/app/static ./static
+# Adicione esta linha para garantir que o standalone do Next.js/Vendure funcione
+COPY --from=builder /usr/src/app/apps/server/dist ./apps/server/dist 
 
 EXPOSE 3000
-CMD ["npm", "run", "start:server"]
+
+# Comando para iniciar a aplicação
+CMD ["node", "dist/index.js"]
