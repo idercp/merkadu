@@ -39,11 +39,19 @@ ENV NODE_ENV=production
 ENV VENDURE_SHOP_API_URL=$VENDURE_SHOP_API_URL
 ENV NEXT_PUBLIC_VENDURE_SHOP_API_URL=$NEXT_PUBLIC_VENDURE_SHOP_API_URL
 
-# Copia os ficheiros necessários para o modo standalone
-COPY --from=builder /usr/src/app/.next/standalone ./
-COPY --from=builder /usr/src/app/.next/static ./.next/static
-COPY --from=builder /usr/src/app/public ./public
-COPY --from=builder /usr/src/app/static ./static
+# CÓPIAS CORRIGIDAS: O uso do asterisco (*) torna a cópia opcional 
+# e evita o erro "not found" durante o build da API.
+COPY --from=builder /usr/src/app/package.json ./package.json
+COPY --from=builder /usr/src/app/node_modules ./node_modules
+
+# Se for API, copia dist. Se for Web, copia standalone.
+COPY --from=builder /usr/src/app/dist* ./dist/
+COPY --from=builder /usr/src/app/.next/standalone* ./
+COPY --from=builder /usr/src/app/.next/static* ./.next/static/
+COPY --from=builder /usr/src/app/public* ./public/
+COPY --from=builder /usr/src/app/static* ./static/
 
 EXPOSE 3000
-CMD ["node", "server.js"]
+
+# Comando polivalente para API ou Web
+CMD if [ -f "server.js" ]; then node server.js; else node dist/index.js; fi
