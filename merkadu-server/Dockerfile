@@ -1,44 +1,28 @@
-# =========================
 # Estágio 1: Build
-# =========================
 FROM node:20-alpine AS builder
-
-# Recebe opções de memória do docker-compose (essencial para t3.micro)
 ARG NODE_OPTIONS
-
 WORKDIR /usr/src/app
 
-# Toolchain mínima para evitar erros de gyp em outras libs
+# Ferramentas básicas para integridade
 RUN apk add --no-cache python3 make g++ gcc
 
-# Copiamos apenas o package.json (Já que não temos o lockfile)
-COPY package.json ./
+COPY package*.json ./
 
-# SOLUÇÃO REAL: --omit=optional ignora o mdns2 e outros módulos problemáticos
-# network-concurrency 1 evita que a RAM de 1GB da t3.micro esgote
+# SOLUÇÃO FINAL E DEFINITIVA
 RUN npm config set maxsockets 1 && \
     npm config set progress false && \
-    npm install --omit=optional --network-concurrency 1 && \
+    npm install --ignore-scripts --network-concurrency 1 && \
     npm cache clean --force
 
-# Copia o restante do código do Merkadu
 COPY . .
-
-# Build da aplicação (Usará o Swap de 2GB que configurámos)
 RUN npm run build
 
-
-# =========================
-# Estágio 2: Runtime (Produção)
-# =========================
+# Estágio 2: Runtime
 FROM node:20-alpine
-
 WORKDIR /usr/src/app
-
-# Variável vital para performance na AWS
 ENV NODE_ENV=production
 
-# Copia apenas o necessário para a imagem final ser leve
+# Copiamos as estruturas que o build do Merkadu gera
 COPY --from=builder /usr/src/app/dist ./dist
 COPY --from=builder /usr/src/app/node_modules ./node_modules
 COPY --from=builder /usr/src/app/package.json ./package.json
@@ -47,5 +31,5 @@ COPY --from=builder /usr/src/app/apps/server/dist ./apps/server/dist
 
 EXPOSE 3000
 
-# Comando de arranque direto
+# Execução direta para estabilidade na AWS
 CMD ["node", "dist/index.js"]
