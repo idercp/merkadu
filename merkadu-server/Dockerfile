@@ -1,13 +1,15 @@
-# =========================
+#=========================
 # Estágio 1: Build
 # =========================
 FROM node:20-alpine AS builder
 
+# 1. Declaramos os argumentos que vêm do docker-compose
 ARG VENDURE_SHOP_API_URL
 ARG NEXT_PUBLIC_VENDURE_SHOP_API_URL
 ARG NODE_OPTIONS
 
-# Injeta as variáveis para que o Next.js as veja durante o build
+# 2. VITAL: Transformamos os ARG em ENV. 
+# Sem isto, o "npm run build" não consegue ler os valores.
 ENV VENDURE_SHOP_API_URL=$VENDURE_SHOP_API_URL
 ENV NEXT_PUBLIC_VENDURE_SHOP_API_URL=$NEXT_PUBLIC_VENDURE_SHOP_API_URL
 ENV NODE_OPTIONS=$NODE_OPTIONS
