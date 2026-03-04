@@ -11,7 +11,8 @@ COPY package*.json ./
 # CONFIGURAÇÃO DE MEMÓRIA PARA O NPM (Resolve o erro 228)
 RUN npm config set maxsockets 1 && \
     npm config set progress false && \
-    npm install --network-concurrency 1
+    npm install --network-concurrency 1 && \
+    npm cache clean --force
 
 COPY . .
 
@@ -27,10 +28,9 @@ WORKDIR /usr/src/app
 COPY --from=builder /usr/src/app/dist ./dist
 COPY --from=builder /usr/src/app/node_modules ./node_modules
 COPY --from=builder /usr/src/app/package.json ./package.json
-# Adicione esta linha para garantir que o standalone do Next.js/Vendure funcione
+# 2. Garanta que a pasta static é copiada (essencial para imagens e CSS no Next.js)
+COPY --from=builder /usr/src/app/static ./static 
 COPY --from=builder /usr/src/app/apps/server/dist ./apps/server/dist 
 
 EXPOSE 3000
-
-# Comando para iniciar a aplicação
 CMD ["node", "dist/index.js"]
