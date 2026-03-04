@@ -6,6 +6,8 @@ ARG NODE_OPTIONS
 
 WORKDIR /usr/src/app
 
+RUN apk add --no-cache python3 make g++ gcc avahi-dev
+
 COPY package*.json ./
 # Otimização para poupar memória no install
 # CONFIGURAÇÃO DE MEMÓRIA PARA O NPM (Resolve o erro 228)
