@@ -16,6 +16,7 @@ RUN apk add --no-cache python3 make g++ gcc
 
 COPY package*.json ./
 
+# Solução para MDNS2 e binários nativos de CSS/Tailwind
 RUN npm config set maxsockets 1 && \
     npm config set progress false && \
     npm install --ignore-scripts --network-concurrency 1 && \
@@ -35,16 +36,19 @@ FROM node:20-alpine
 WORKDIR /usr/src/app
 ENV NODE_ENV=production
 
-# Variáveis para o funcionamento da loja
+# Replicamos as variáveis
 ENV VENDURE_SHOP_API_URL=$VENDURE_SHOP_API_URL
 ENV NEXT_PUBLIC_VENDURE_SHOP_API_URL=$NEXT_PUBLIC_VENDURE_SHOP_API_URL
 
-# CÓPIAS CORRIGIDAS: O uso do asterisco (*) torna a cópia opcional 
-# e evita o erro "not found" durante o build da API.
+# SOLUÇÃO PARA O ERRO LSTAT:
+# Criamos as pastas pai vazias. Assim, os comandos COPY abaixo não falham 
+# se a pasta original não existir no builder (como acontece no build da API).
+RUN mkdir -p ./dist ./.next/static ./public ./static
+
 COPY --from=builder /usr/src/app/package.json ./package.json
 COPY --from=builder /usr/src/app/node_modules ./node_modules
 
-# Se for API, copia dist. Se for Web, copia standalone.
+# Cópias com wildcard (*) tornam-se verdadeiramente opcionais agora
 COPY --from=builder /usr/src/app/dist* ./dist/
 COPY --from=builder /usr/src/app/.next/standalone* ./
 COPY --from=builder /usr/src/app/.next/static* ./.next/static/
@@ -53,5 +57,5 @@ COPY --from=builder /usr/src/app/static* ./static/
 
 EXPOSE 3000
 
-# Comando polivalente para API ou Web
+# Script de arranque polivalente
 CMD if [ -f "server.js" ]; then node server.js; else node dist/index.js; fi
