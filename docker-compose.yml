@@ -1,28 +1,26 @@
-version: '3.8'
-
 services:
   merkadu-api:
-    image: node:18-alpine
+    # 1. Usa o seu Dockerfile (Node 20 + Configurações)
+    build: 
+      context: ./merkadu-server/apps/server
+      dockerfile: ../../Dockerfile
     container_name: merkadu-api
     restart: always
-    # ESTA É A LINHA QUE FALTA:
     env_file: .env
-    working_dir: /app
-    volumes:
-      - /home/ec2-user/merkadu/merkadu-server:/app
+    # 2. Portas padrão para a API
     ports:
       - "3000:3000"
-    command: sh -c "cd apps/server && npm install && npm run build && npm start"
+      - "3002:3002" # Admin UI
+    # 3. Executa o que já foi compilado (Muito mais rápido!)
+    command: sh -c "node dist/index.js"
 
   merkadu-web:
-    image: node:18-alpine
+    build:
+      context: ./merkadu-server/apps/storefront
+      dockerfile: ../../Dockerfile
     container_name: merkadu-web
     restart: always
-    # Também recomendável para o frontend
     env_file: .env
-    working_dir: /app
-    volumes:
-      - /home/ec2-user/merkadu/merkadu-server:/app
     ports:
       - "80:3000"
-    command: sh -c "cd apps/storefront && npm install && npm run build && npm start"
+    command: sh -c "node .next/standalone/server.js"
