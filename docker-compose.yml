@@ -18,6 +18,9 @@ services:
     build:
       context: ./merkadu-server/apps/storefront
       dockerfile: ../../Dockerfile
+      args:
+        # Aumenta o limite de memória do Node durante o build para 1.5GB
+        - NODE_OPTIONS=--max-old-space-size=1536
     container_name: merkadu-web
     restart: always
     env_file: .env
