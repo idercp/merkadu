@@ -21,7 +21,7 @@ COPY package*.json ./
 RUN npm config set maxsockets 1 && \
     npm config set progress false && \
     npm install --ignore-scripts --network-concurrency 1 && \
-    npm install @lightningcss/linux-x64-musl && \
+    npm install lightningcss-linux-x64-musl --save-optional --ignore-scripts && \
     npm cache clean --force
 
 # Copia o código fonte do projeto
