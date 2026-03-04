@@ -8,7 +8,7 @@ WORKDIR /usr/src/app
 
 COPY package*.json ./
 # Otimização para poupar memória no install
-RUN npm install --network-timeout 100000
+RUN npm install
 
 COPY . .
 
