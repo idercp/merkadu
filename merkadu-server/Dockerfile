@@ -8,7 +8,10 @@ WORKDIR /usr/src/app
 
 COPY package*.json ./
 # Otimização para poupar memória no install
-RUN npm install
+# CONFIGURAÇÃO DE MEMÓRIA PARA O NPM (Resolve o erro 228)
+RUN npm config set maxsockets 1 && \
+    npm config set progress false && \
+    npm install --network-concurrency 1
 
 COPY . .
 
