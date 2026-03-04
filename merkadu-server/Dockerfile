@@ -1,39 +1,52 @@
+# =========================
 # Estágio 1: Build
+# =========================
 FROM node:20-alpine AS builder
 
-# VITAL: Recebe o argumento de memória do docker-compose
+# Recebe opções de memória do docker-compose / CI
 ARG NODE_OPTIONS
 
 WORKDIR /usr/src/app
 
-RUN apk add --no-cache python3 make g++ gcc avahi-dev
+# Dependências necessárias para node-gyp (caso outras libs precisem)
+RUN apk add --no-cache python3 make g++ gcc
 
-COPY package*.json ./
-# Otimização para poupar memória no install
-# CONFIGURAÇÃO DE MEMÓRIA PARA O NPM (Resolve o erro 228)
-RUN sed -i '/mdns2/d' package.json && \
-    npm config set maxsockets 1 && \
+# Copia apenas manifests para aproveitar cache
+COPY package.json package-lock.json ./
+
+# Instala dependências:
+# --omit=optional evita mdns2 e outros módulos nativos problemáticos
+# network-concurrency reduz consumo de memória no CI
+RUN npm config set maxsockets 1 && \
     npm config set progress false && \
-    npm install --network-concurrency 1 && \
+    npm install --omit=optional --network-concurrency 1 && \
     npm cache clean --force
 
+# Copia o restante código
 COPY . .
 
-# O build agora usará o Swap de 2GB graças ao NODE_OPTIONS
+# Build da aplicação
 RUN npm run build
 
-# Estágio 2: Run (Imagem leve para produção)
+
+# =========================
+# Estágio 2: Runtime
+# =========================
 FROM node:20-alpine
 
 WORKDIR /usr/src/app
 
-# Copia os ficheiros necessários para a execução
+# Copia apenas o necessário para produção
 COPY --from=builder /usr/src/app/dist ./dist
 COPY --from=builder /usr/src/app/node_modules ./node_modules
 COPY --from=builder /usr/src/app/package.json ./package.json
-# 2. Garanta que a pasta static é copiada (essencial para imagens e CSS no Next.js)
-COPY --from=builder /usr/src/app/static ./static 
-COPY --from=builder /usr/src/app/apps/server/dist ./apps/server/dist 
+
+# Ajusta conforme o teu projeto
+COPY --from=builder /usr/src/app/static ./static
+COPY --from=builder /usr/src/app/apps/server/dist ./apps/server/dist
+
+ENV NODE_ENV=production
 
 EXPOSE 3000
+
 CMD ["node", "dist/index.js"]
