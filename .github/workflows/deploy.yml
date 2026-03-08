@@ -33,18 +33,12 @@ jobs:
           command_timeout: 40m
           script: |
             cd ~/merkadu
-            
-            # 1. Limpeza total para garantir os 4.0GB livres
             docker system prune -f
-            
-            # 2. Carrega as variáveis do .env da AWS para a shell
             if [ -f .env ]; then
               export $(grep -v '^#' .env | xargs)
             fi
-            
             docker-compose down
             
-            # 3. Build sequencial forçando a passagem das variáveis
             docker-compose build \
               --build-arg VENDURE_SHOP_API_URL="$VENDURE_SHOP_API_URL" \
               --build-arg NEXT_PUBLIC_VENDURE_SHOP_API_URL="$NEXT_PUBLIC_VENDURE_SHOP_API_URL" \
