@@ -1,6 +1,9 @@
 import {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
+    // LINHA ADICIONADA: Diz ao Next.js para criar a pasta standalone para o Docker
+    output: 'standalone',
+    
     cacheComponents: true,
     images: {
         // This is necessary to display images from your local Vendure instance
