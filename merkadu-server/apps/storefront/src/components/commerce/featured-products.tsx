@@ -19,7 +19,8 @@ async function getFeaturedCollectionProducts() {
         }
     });
 
-    return result.data.search.items;
+    // CORREÇÃO: Optional chaining e fallback para array vazio se a API estiver offline no build
+    return result?.data?.search?.items || [];
 }
 
 
@@ -29,7 +30,8 @@ export async function FeaturedProducts() {
     return (
         <ProductCarousel
             title="Featured Products"
-            products={products}
+            // Garante que o carrossel recebe sempre um array, mesmo que vazio
+            products={products || []} 
         />
     )
 }
