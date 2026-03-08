@@ -34,31 +34,26 @@ jobs:
           script: |
             cd ~/merkadu
             
-            # 1. LIMPEZA PREVENTIVA: Garante espaço para o build (Vital para t3.micro)
-            # Remove contentores parados e imagens sem uso para libertar os 4.0GB de disco
+            # 1. Limpeza total para garantir os 4.0GB livres
             docker system prune -f
             
-            # 2. Carrega as variáveis do .env real da AWS para a shell
+            # 2. Carrega as variáveis do .env da AWS para a shell
             if [ -f .env ]; then
               export $(grep -v '^#' .env | xargs)
             fi
             
-            # 3. Para os serviços atuais para libertar RAM
             docker-compose down
             
-            # 4. Build sequencial com injeção de argumentos
+            # 3. Build sequencial forçando a passagem das variáveis
             docker-compose build \
-              --build-arg VENDURE_SHOP_API_URL=$VENDURE_SHOP_API_URL \
-              --build-arg NEXT_PUBLIC_VENDURE_SHOP_API_URL=$NEXT_PUBLIC_VENDURE_SHOP_API_URL \
+              --build-arg VENDURE_SHOP_API_URL="$VENDURE_SHOP_API_URL" \
+              --build-arg NEXT_PUBLIC_VENDURE_SHOP_API_URL="$NEXT_PUBLIC_VENDURE_SHOP_API_URL" \
               merkadu-api
             
             docker-compose build \
-              --build-arg VENDURE_SHOP_API_URL=$VENDURE_SHOP_API_URL \
-              --build-arg NEXT_PUBLIC_VENDURE_SHOP_API_URL=$NEXT_PUBLIC_VENDURE_SHOP_API_URL \
+              --build-arg VENDURE_SHOP_API_URL="$VENDURE_SHOP_API_URL" \
+              --build-arg NEXT_PUBLIC_VENDURE_SHOP_API_URL="$NEXT_PUBLIC_VENDURE_SHOP_API_URL" \
               merkadu-web
             
-            # 5. Sobe os serviços em segundo plano
             docker-compose up -d
-            
-            # 6. Limpeza final de imagens temporárias criadas durante este build
             docker image prune -f

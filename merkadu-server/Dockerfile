@@ -1,10 +1,13 @@
+# =========================
+# Estágio 1: Build
+# =========================
 FROM node:20-alpine AS builder
 
 ARG VENDURE_SHOP_API_URL
 ARG NEXT_PUBLIC_VENDURE_SHOP_API_URL
 ARG NODE_OPTIONS
 
-# Transforma ARG em ENV para que fiquem visíveis no 'npm run build'
+# Injeta as variáveis para o processo de build
 ENV VENDURE_SHOP_API_URL=$VENDURE_SHOP_API_URL
 ENV NEXT_PUBLIC_VENDURE_SHOP_API_URL=$NEXT_PUBLIC_VENDURE_SHOP_API_URL
 ENV NODE_OPTIONS=$NODE_OPTIONS
@@ -28,11 +31,19 @@ RUN mkdir -p ./.next/standalone ./.next/static ./public ./static ./dist
 
 RUN npm run build
 
-# --- Estágio de Produção ---
+# LIMPEZA DE CACHE: Vital para não estourar os 4.0GB de disco da t3.micro
+RUN rm -rf .next/cache
+
+# =========================
+# Estágio 2: Runtime
+# =========================
 FROM node:20-alpine
 WORKDIR /usr/src/app
 ENV NODE_ENV=production
 
+# Re-declaramos os argumentos para que o estágio final também os possua
+ARG VENDURE_SHOP_API_URL
+ARG NEXT_PUBLIC_VENDURE_SHOP_API_URL
 ENV VENDURE_SHOP_API_URL=$VENDURE_SHOP_API_URL
 ENV NEXT_PUBLIC_VENDURE_SHOP_API_URL=$NEXT_PUBLIC_VENDURE_SHOP_API_URL
 
