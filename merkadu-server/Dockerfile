@@ -5,6 +5,7 @@ ARG VENDURE_SHOP_API_URL
 ARG NEXT_PUBLIC_VENDURE_SHOP_API_URL
 ARG NODE_OPTIONS
 
+# Transforma ARG em ENV para visibilidade no processo de build
 ENV VENDURE_SHOP_API_URL=$VENDURE_SHOP_API_URL
 ENV NEXT_PUBLIC_VENDURE_SHOP_API_URL=$NEXT_PUBLIC_VENDURE_SHOP_API_URL
 ENV NODE_OPTIONS=$NODE_OPTIONS
@@ -21,7 +22,13 @@ RUN npm config set maxsockets 1 && \
 
 COPY . .
 RUN mkdir -p ./.next/standalone ./.next/static ./public ./static ./dist
-RUN npm run build
+
+# MUDANÇA APLICADA: Força a injeção das variáveis no comando de build
+RUN VENDURE_SHOP_API_URL=${VENDURE_SHOP_API_URL} \
+    NEXT_PUBLIC_VENDURE_SHOP_API_URL=${NEXT_PUBLIC_VENDURE_SHOP_API_URL} \
+    npm run build
+
+# Limpeza de cache para proteger os 12GB de disco livre
 RUN rm -rf .next/cache
 
 # Stage 2: Runtime
@@ -34,7 +41,7 @@ ARG NEXT_PUBLIC_VENDURE_SHOP_API_URL
 ENV VENDURE_SHOP_API_URL=$VENDURE_SHOP_API_URL
 ENV NEXT_PUBLIC_VENDURE_SHOP_API_URL=$NEXT_PUBLIC_VENDURE_SHOP_API_URL
 
-# Copia apenas o necessário do standalone
+# Copia apenas o necessário do standalone para manter a imagem leve
 COPY --from=builder /usr/src/app/.next/standalone ./
 COPY --from=builder /usr/src/app/.next/static ./.next/static
 COPY --from=builder /usr/src/app/public ./public
